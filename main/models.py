@@ -1,8 +1,7 @@
 from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
-
-from .managers import UserManager
+from .managers import DefaultUserManager
 
 
 # Create your models here.
@@ -15,7 +14,7 @@ class DefaultUser(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return f'{self.first_name} {self.last_name}'
+        return self.email
 
     USERNAME_FIELD = 'email'
-    objects = UserManager
+    objects = DefaultUserManager()

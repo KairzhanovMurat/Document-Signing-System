@@ -1,7 +1,7 @@
 from django.contrib.auth.models import BaseUserManager
 
 
-class UserManager(BaseUserManager):
+class DefaultUserManager(BaseUserManager):
     def create_user(self, email, password=None, **kwargs):
         if not email:
             raise ValueError('email must be provided.')

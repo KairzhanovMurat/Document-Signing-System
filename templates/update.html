@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+     <div class="container mt-5">
+        <h1>Edit Document</h1>
+        <div class="card">
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form.non_field_errors }}
+                    <div class="form-group">
+                        <label for="{{ form.description.id_for_label }}">Description</label>
+                        {{ form.description }}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.file.id_for_label }}">Document</label>
+                        {{ form.file }}
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <a href="{{ document.get_absolute_url }}" class="btn btn-secondary ml-2">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

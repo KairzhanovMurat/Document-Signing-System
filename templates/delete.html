@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+    <div class="container mt-5">
+        <h1>Delete Document</h1>
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Are you sure you want to delete the document "{{ document.description }}"?</h5>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                    <a href="{{ document.get_absolute_url }}" class="btn btn-secondary">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}>

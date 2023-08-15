@@ -43,3 +43,4 @@ class DefaultUserAdmin(UserAdmin):
 
 admin.site.register(models.DefaultUser, DefaultUserAdmin)
 admin.site.register(models.Document)
+admin.site.register(models.ApprovalRequest)

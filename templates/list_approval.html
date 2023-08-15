@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block content %}
+    <div class="container mt-5">
+        <h1>Approval Requests List</h1>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Receivers</th>
+                    <th>Document Name</th>
+                    <th>Requested At</th>
+                    <th>Is Approved</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for approval_request in approval_requests %}
+                    <tr>
+                        <td>
+                            {% for receiver in approval_request.receivers.all %}
+                                {{ receiver.email }}
+                                {% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td>{{ approval_request.document.description }}</td>
+                        <td>{{ approval_request.requested_at }}</td>
+                        <td>
+                            {% if approval_request.is_approved %}
+                                <span class="badge badge-success">Approved</span>
+                            {% else %}
+                                <span class="badge badge-warning">Pending Approval</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

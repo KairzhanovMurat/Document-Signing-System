@@ -1,8 +1,7 @@
-from django.contrib.auth.views import LoginView
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views import generic
+
 from . import models
-from . import forms
 
 
 # Create your views here.
@@ -14,17 +13,10 @@ class Index(generic.View):
             return render(request, 'index.html')
 
 
-#
-#
-# class CustomLoginView(LoginView):
-#     # form_class = forms.EmailAuthenticationForm
-#     template_name = 'registration/login.html'
-
-
 class UploadFileView(generic.CreateView):
     model = models.Document
     template_name = 'create.html'
-    success_url = '/'
+    success_url = '/list'
     fields = ('file', 'description')
 
     def form_valid(self, form):
@@ -59,3 +51,33 @@ class ListFileView(generic.ListView):
 class DetailFileView(generic.DetailView):
     model = models.Document
     template_name = 'detail.html'
+
+
+class CreateApprovalRequest(generic.View):
+    template_name = 'approval.html'
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        receivers = models.DefaultUser.objects.exclude(id=user.id)
+        documents = models.Document.objects.filter(user=user)
+        context = {'receivers': receivers, 'documents': documents}
+        return render(request, self.template_name, context)
+
+    def post(self, request, *args, **kwargs):
+        sender = request.user
+        receivers = request.POST.getlist('receivers')
+        document_id = request.POST.get('document')
+        document = models.Document.objects.get(id=document_id)
+        approval_request = models.ApprovalRequest.objects.create(sender=sender, document=document)
+        approval_request.receivers.set(receivers)
+        approval_request.save()
+        return redirect('home')
+
+
+class ListApprovalRequest(generic.ListView):
+    template_name = 'list_approval.html'
+    model = models.ApprovalRequest
+    context_object_name = 'approval_requests'
+
+    def get_queryset(self):
+        return models.ApprovalRequest.objects.filter(sender=self.request.user).select_related('document', 'sender')

@@ -20,6 +20,9 @@ class DefaultUser(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
 
+    def get_full_name(self):
+        return f'{self.first_name} {self.last_name}'
+
     def __str__(self):
         return self.email
 
@@ -40,3 +43,14 @@ class Document(models.Model):
 
     def get_absolute_url(self):
         return reverse('detail', args=[str(self.pk)])
+
+
+class ApprovalRequest(models.Model):
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='sender')
+    receivers = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='receivers')
+    document = models.ForeignKey(Document, on_delete=models.CASCADE)
+    requested_at = models.DateTimeField(auto_now_add=True)
+    is_approved = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f'{self.sender} approval request for {self.document.description}'

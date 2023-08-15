@@ -1,25 +1,31 @@
 from django import forms
-from django.contrib.auth import authenticate
-from django.contrib.auth.forms import AuthenticationForm
-from django.forms import ModelForm
+from django.contrib.auth import get_user_model
+
 from . import models
 
 
-# class EmailAuthenticationForm(AuthenticationForm):
-#     email = forms.EmailField(label='Email', max_length=254)
-#
-#     def clean(self):
-#         email = self.cleaned_data.get('email')
-#         password = self.cleaned_data.get('password')
-#
-#         if email and password:
-#             self.user_cache = authenticate(self.request, email=email, password=password)
-#             if self.user_cache is None:
-#                 raise forms.ValidationError('Invalid email or password')
-#         return self.cleaned_data
+class SharingRequestForm(forms.ModelForm):
+    sender = forms.ModelChoiceField(
+        queryset=get_user_model().objects.all(),
+        widget=forms.Select,
+        required=True,
+        help_text="Select the sender of the approval request."
+    )
 
-
-class FileUploadForm(ModelForm):
     class Meta:
-        model = models.Document
-        fields = ('file', 'description')
+        model = models.ApprovalRequest
+        fields = ['sender', 'receivers']
+
+    def __init__(self, *args, **kwargs):
+        sender = kwargs.pop('sender', None)  # Remove 'sender' from kwargs if present
+        super().__init__(*args, **kwargs)
+        if sender:
+            self.fields['sender'].queryset = get_user_model().objects.filter(id=sender.id)
+
+    def save(self, commit=True):
+        sharing_request = super().save(commit=False)
+        sharing_request.sender = self.cleaned_data['sender']
+        if commit:
+            sharing_request.save()
+            sharing_request.receivers.add(*self.cleaned_data['receivers'])
+        return sharing_request

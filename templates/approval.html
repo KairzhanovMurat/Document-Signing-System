@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+        <h1>Create Approval Request</h1>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="receivers">Receivers:</label>
+                <select multiple class="form-control" id="receivers" name="receivers">
+                    {% for receiver in receivers %}
+                        <option value="{{ receiver.id }}">{{ receiver.email }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="document">Document:</label>
+                <select class="form-control" id="document" name="document">
+                    {% for doc in documents %}
+                        <option value="{{ doc.id }}">{{ doc.description }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Create Approval Request</button>
+        </form>
+    </div>
+{% endblock %}

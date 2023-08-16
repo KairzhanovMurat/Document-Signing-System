@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect
 from django.views import generic
 
@@ -13,18 +14,21 @@ class Index(generic.View):
             return render(request, 'index.html')
 
 
-class UploadFileView(generic.CreateView):
+class UploadFileView(LoginRequiredMixin, generic.CreateView):
     model = models.Document
     template_name = 'create.html'
-    success_url = '/list'
     fields = ('file', 'description')
+    redirect_field_name = 'redirect_to'
+
+    def get_success_url(self):
+        return self.object.get_absolute_url()
 
     def form_valid(self, form):
         form.instance.user = self.request.user
         return super().form_valid(form)
 
 
-class UpdateFileView(generic.UpdateView):
+class UpdateFileView(LoginRequiredMixin, generic.UpdateView):
     model = models.Document
     template_name = 'update.html'
     fields = ('file', 'description')
@@ -33,13 +37,13 @@ class UpdateFileView(generic.UpdateView):
         return self.object.get_absolute_url()
 
 
-class DeleteFileView(generic.DeleteView):
+class DeleteFileView(LoginRequiredMixin, generic.DeleteView):
     model = models.Document
     template_name = 'delete.html'
     success_url = '/list'
 
 
-class ListFileView(generic.ListView):
+class ListFileView(LoginRequiredMixin, generic.ListView):
     model = models.Document
     template_name = 'list.html'
     context_object_name = 'files'
@@ -48,12 +52,12 @@ class ListFileView(generic.ListView):
         return models.Document.objects.filter(user=self.request.user).all()
 
 
-class DetailFileView(generic.DetailView):
+class DetailFileView(LoginRequiredMixin, generic.DetailView):
     model = models.Document
     template_name = 'detail.html'
 
 
-class CreateApprovalRequest(generic.View):
+class CreateApprovalRequest(LoginRequiredMixin, generic.View):
     template_name = 'approval.html'
 
     def get(self, request, *args, **kwargs):
@@ -74,10 +78,20 @@ class CreateApprovalRequest(generic.View):
         return redirect('home')
 
 
-class ListApprovalRequest(generic.ListView):
+class ListApprovalRequest(LoginRequiredMixin, generic.ListView):
     template_name = 'list_approval.html'
     model = models.ApprovalRequest
     context_object_name = 'approval_requests'
 
     def get_queryset(self):
-        return models.ApprovalRequest.objects.filter(sender=self.request.user).select_related('document', 'sender')
+        return models.ApprovalRequest.objects.filter(sender=self.request.user)
+
+
+class IncomingApprovals(LoginRequiredMixin, generic.ListView):
+    model = models.ApprovalRequest
+    context_object_name = 'approvals'
+    template_name = 'incoming_approvals.html'
+
+    def get_queryset(self):
+        user_id = self.request.user.id
+        return models.ApprovalRequest.objects.filter(receivers=user_id).select_related('document', 'sender')

@@ -1,10 +1,11 @@
+from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
-from .managers import DefaultUserManager
-from django.conf import settings
-from . import validators
 from django.urls import reverse
+
+from . import validators
+from .managers import DefaultUserManager
 
 
 def user_upload_path(instance, filename):

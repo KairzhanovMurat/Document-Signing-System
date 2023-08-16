@@ -1,5 +1,6 @@
-from django.urls import path
 from django.contrib.auth.views import LogoutView, LoginView
+from django.urls import path
+
 from . import views
 
 urlpatterns = [
@@ -13,5 +14,6 @@ urlpatterns = [
     path('detail/<int:pk>', views.DetailFileView.as_view(), name='detail'),
     path('approval', views.CreateApprovalRequest.as_view(), name='approval'),
     path('approvals/list', views.ListApprovalRequest.as_view(), name='approval_list'),
+    path('approvals/incoming', views.IncomingApprovals.as_view(), name='incoming_approvals')
 
 ]

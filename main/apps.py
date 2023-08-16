@@ -10,4 +10,4 @@ class MainConfig(AppConfig):
     def ready(self):
         import main.signals
 
-        from .signals import delete_document_file, send_approval_request_email, send_approval_request_app
+        from .signals import delete_document_file, send_approval_request_email

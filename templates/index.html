@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
 {% block content %}
     {% if request.user.is_authenticated %}
-        <h1>Hey {{ request.user.first_name }}</h1>
+        <h1>{{ request.user.first_name }}</h1>
     {% else %}
-        <h1>Hey unknown</h1>
+        <h1>Пользователь не авторизован</h1>
     {% endif %}
 {% endblock %}

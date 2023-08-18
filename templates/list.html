@@ -1,16 +1,16 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container mt-5">
-        <h1 class="mb-4">My Files</h1>
+        <h1 class="mb-4">Mои документы</h1>
         <ul class="list-group">
             {% for file in files %}
                 <li class="list-group-item">
                     <a href="{% url 'detail' file.pk %}">{{ file.description }}</a>
                     <span class="float-right">
                         {% if file.is_approved %}
-                            <span class="badge badge-success">Approved</span>
+                            <span class="badge badge-success">Согласован</span>
                         {% else %}
-                            <span class="badge badge-warning">Pending Approval</span>
+                            <span class="badge badge-warning">Ожидает подписи</span>
                         {% endif %}
                     </span>
                 </li>

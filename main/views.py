@@ -18,7 +18,6 @@ class UploadFileView(LoginRequiredMixin, generic.CreateView):
     model = models.Document
     template_name = 'create.html'
     fields = ('file', 'description')
-    redirect_field_name = 'redirect_to'
 
     def get_success_url(self):
         return self.object.get_absolute_url()
@@ -72,8 +71,11 @@ class CreateApprovalRequest(LoginRequiredMixin, generic.View):
         receivers = request.POST.getlist('receivers')
         document_id = request.POST.get('document')
         document = models.Document.objects.get(id=document_id)
+        document.is_approved = False
+        document.save()
         approval_request = models.ApprovalRequest.objects.create(sender=sender, document=document)
         approval_request.receivers.set(receivers)
+        approval_request.initial_receivers.set(receivers)
         approval_request.save()
         return redirect('home')
 
@@ -84,7 +86,7 @@ class ListApprovalRequest(LoginRequiredMixin, generic.ListView):
     context_object_name = 'approval_requests'
 
     def get_queryset(self):
-        return models.ApprovalRequest.objects.filter(sender=self.request.user)
+        return models.ApprovalRequest.objects.filter(sender=self.request.user).select_related('document')
 
 
 class IncomingApprovals(LoginRequiredMixin, generic.ListView):
@@ -95,3 +97,18 @@ class IncomingApprovals(LoginRequiredMixin, generic.ListView):
     def get_queryset(self):
         user_id = self.request.user.id
         return models.ApprovalRequest.objects.filter(receivers=user_id).select_related('document', 'sender')
+
+
+def approve_request(request, approval_request_pk):
+    if request.method == 'POST':
+        user_id = request.user.id
+        approval_request = models.ApprovalRequest.objects.filter(pk=approval_request_pk).first()
+        approval_request.receivers.remove(user_id)
+        approval_request.save()
+        if approval_request.receivers.count() == 0:
+            doc = approval_request.document
+            doc.is_approved = True
+            approval_request.is_approved = True
+            approval_request.save()
+            doc.save()
+        return redirect('incoming_approvals')

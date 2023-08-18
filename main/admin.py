@@ -14,6 +14,7 @@ class DefaultUserAdmin(UserAdmin):
                     ('email',
                      'first_name',
                      'last_name',
+                     'sign_image',
                      'password')}),
         (_('Permissions'), {'fields':
                                 ('is_active',
@@ -32,6 +33,7 @@ class DefaultUserAdmin(UserAdmin):
                      'first_name',
                      'last_name',
                      'email',
+                     'sign_image',
                      'password1',
                      'password2',
                      'is_active',

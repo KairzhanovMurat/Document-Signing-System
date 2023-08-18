@@ -8,8 +8,12 @@ from . import validators
 from .managers import DefaultUserManager
 
 
-def user_upload_path(instance, filename):
-    return f'user_{instance.user.email}/{filename}'
+def file_upload_path(instance, filename):
+    return f'{instance.user.email}/files/{filename}'
+
+
+def image_upload_path(instance, filename):
+    return f'{instance.email}/image/{filename}'
 
 
 # Create your models here.
@@ -18,6 +22,8 @@ class DefaultUser(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(max_length=128)
     last_name = models.CharField(max_length=128)
     email = models.EmailField(unique=True)
+    sign_image = models.ImageField(blank=True, upload_to=image_upload_path)
+
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
 
@@ -33,8 +39,8 @@ class DefaultUser(AbstractBaseUser, PermissionsMixin):
 
 class Document(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    file = models.FileField(upload_to=user_upload_path,
-                            validators=[validators.validate_pdf])
+    file = models.FileField(upload_to=file_upload_path,
+                            validators=[validators.validate_pdf], unique=True)
     description = models.CharField(max_length=128)
     uploaded_at = models.DateTimeField(auto_now_add=True)
     is_approved = models.BooleanField(default=False)
@@ -49,6 +55,7 @@ class Document(models.Model):
 class ApprovalRequest(models.Model):
     sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='sender')
     receivers = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='receivers')
+    initial_receivers = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='initial_receivers')
     document = models.ForeignKey(Document, on_delete=models.CASCADE)
     requested_at = models.DateTimeField(auto_now_add=True)
     is_approved = models.BooleanField(default=False)

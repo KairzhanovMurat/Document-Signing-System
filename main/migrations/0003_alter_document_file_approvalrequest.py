@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='document',
             name='file',
-            field=models.FileField(upload_to=main.models.user_upload_path, validators=[main.validators.validate_pdf]),
+            field=models.FileField(upload_to=main.models.file_upload_path, validators=[main.validators.validate_pdf]),
         ),
         migrations.CreateModel(
             name='ApprovalRequest',

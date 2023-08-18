@@ -1,18 +1,24 @@
 {% extends 'base.html' %}
 {% block content %}
     <div class="container mt-4">
-        <h1 class="mb-4">Approval Requests</h1>
+        <h1 class="mb-4">Входящие запросы</h1>
         <ul class="list-group">
             {% for approval_request in approvals %}
                 <li class="list-group-item">
-                    <h4 class="mb-2">Sender: {{ approval_request.sender.email }}</h4>
-                    <p><strong>Description:</strong> {{ approval_request.document.description }}</p>
-                    <p><strong>Requested At:</strong> {{ approval_request.requested_at }}</p>
-                    <p><strong>File:</strong> <a href="{{ approval_request.document.file.url }}"
+                    <h4 class="mb-2">Отправитель: {{ approval_request.sender.email }}</h4>
+                    <p><strong>Описание:</strong> {{ approval_request.document.description }}</p>
+                    <p><strong>Дата отправки:</strong> {{ approval_request.requested_at }}</p>
+                    <p><strong>Документ:</strong> <a href="{{ approval_request.document.file.url }}"
                                                  target="_blank">{{ approval_request.document.file.name }}</a></p>
+
+
+                    <form method="POST" action="{% url 'approve_request' approval_request.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary">Согласовать</button>
+                    </form>
                 </li>
             {% empty %}
-                <li class="list-group-item">No approval requests available.</li>
+                <li class="list-group-item">Нет входящих запросов.</li>
             {% endfor %}
         </ul>
     </div>

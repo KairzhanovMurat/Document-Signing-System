@@ -9,14 +9,29 @@ from django.conf import settings
 from django.db.models.signals import pre_delete, post_save
 from django.dispatch.dispatcher import receiver
 
-from .models import Document, ApprovalRequest
+from .models import Document, ApprovalRequest, DefaultUser
 
 
 @receiver(pre_delete, sender=Document)
 def delete_document_file(sender, instance, **kwargs):
+    file_path = instance.file.path
     if instance.file:
-        if os.path.isfile(instance.file.path):
-            os.remove(instance.file.path)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+            folder_path = os.path.dirname(file_path)
+            if not os.listdir(folder_path):
+                os.rmdir(folder_path)
+
+
+@receiver(pre_delete, sender=DefaultUser)
+def delete_image_file(sender, instance, **kwargs):
+    file_path = instance.sign_image.path
+    if instance.sign_image:
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+            folder_path = os.path.dirname(file_path)
+            if not os.listdir(folder_path):
+                os.rmdir(folder_path)
 
 
 @receiver(post_save, sender=ApprovalRequest)
@@ -36,7 +51,8 @@ def send_approval_request_email(sender, instance, **kwargs):
     context.verify_mode = ssl.CERT_NONE
 
     for r in receivers:
-        message = f': Дорогой/ая {r.get_full_name()}, вам пришел запрос на согласование документа :{document.description} от {sender_name}'
+        message = (f': Дорогой/ая {r.get_full_name()}, вам пришел запрос на согласование документа : {document.description} от {sender_name}\'.'
+                   'Просим перейти по ссылке: http://10.10.5.5:5000/approvals/list для согласования документа.')
         message = MIMEText(message, 'plain')
         msg = MIMEMultipart()
         msg.attach(message)

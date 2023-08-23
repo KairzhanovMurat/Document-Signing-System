@@ -8,12 +8,14 @@ from . import models
 
 class DefaultUserAdmin(UserAdmin):
     ordering = ['id']
-    list_display = ['email', 'first_name', 'last_name']
+    list_display = ['email', 'first_name', 'second_name']
     fieldsets = (
         (None, {'fields':
                     ('email',
                      'first_name',
+                     'second_name',
                      'last_name',
+                     'job_position',
                      'sign_image',
                      'password')}),
         (_('Permissions'), {'fields':
@@ -31,9 +33,11 @@ class DefaultUserAdmin(UserAdmin):
              'fields':
                  (
                      'first_name',
+                     'second_name',
                      'last_name',
                      'email',
                      'sign_image',
+                     'job_position',
                      'password1',
                      'password2',
                      'is_active',

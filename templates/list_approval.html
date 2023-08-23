@@ -4,33 +4,42 @@
         <h1>Отправленные запросы</h1>
         <table class="table">
             <thead>
-                <tr>
-                    <th>Получатели</th>
-                    <th>Описание</th>
-                    <th>Дата запроса:</th>
-                    <th>Статус</th>
-                </tr>
+            <tr>
+                <th>Получатели</th>
+                <th>Описание</th>
+                <th>Дата запроса:</th>
+                <th>Статус</th>
+                <th>Подписавшие</th>
+            </tr>
             </thead>
             <tbody>
-                {% for approval_request in approval_requests %}
-                    <tr>
-                        <td>
-                            {% for receiver in approval_request.initial_receivers.all %}
-                                {{ receiver.email }}
+            {% for approval_request in approval_requests %}
+                <tr>
+                    <td>
+                        {% for receiver in approval_request.receivers.all %}
+                            {{ receiver.email }}
+                            {% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </td>
+                    <td>{{ approval_request.document.description }}</td>
+                    <td>{{ approval_request.requested_at }}</td>
+                    <td>
+                        {% if approval_request.is_approved %}
+                            <span class="badge badge-success">Согласован</span>
+                        {% else %}
+                            <span class="badge badge-warning">Ожидает подписи</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% for receiver in approval_request.requestreceivers_set.all %}
+                            {% if receiver.is_approved %}
+                                {{ receiver.receivers.email }}
                                 {% if not forloop.last %}, {% endif %}
-                            {% endfor %}
-                        </td>
-                        <td>{{ approval_request.document.description }}</td>
-                        <td>{{ approval_request.requested_at }}</td>
-                        <td>
-                            {% if approval_request.is_approved %}
-                                <span class="badge badge-success">Согласован</span>
-                            {% else %}
-                                <span class="badge badge-warning">Ожидает подписи</span>
                             {% endif %}
-                        </td>
-                    </tr>
-                {% endfor %}
+                        {% endfor %}
+                    </td>
+                </tr>
+            {% endfor %}
             </tbody>
         </table>
     </div>

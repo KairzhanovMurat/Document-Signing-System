@@ -12,6 +12,7 @@ urlpatterns = [
     path('doc/delete/<int:pk>', views.DeleteFileView.as_view(), name='delete'),
     path('doc/list', views.ListFileView.as_view(), name='list'),
     path('doc/detail/<int:pk>', views.DetailFileView.as_view(), name='detail'),
+    path('doc/search', views.search, name='search'),
     path('approvals/create', views.CreateApprovalRequest.as_view(), name='approval'),
     path('approvals/list', views.ListApprovalRequest.as_view(), name='approval_list'),
     path('approvals/incoming', views.IncomingApprovals.as_view(), name='incoming_approvals'),

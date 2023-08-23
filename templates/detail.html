@@ -17,9 +17,11 @@
                 <a href="{{ document.file.url }}" class="btn btn-primary" target="_blank">
                     Открыть дкумент
                 </a>
-                 <a href="{% url 'update' document.pk %}" class="btn btn-info ml-2">
-                    Редактировать
-                </a>
+                {% if requests_count == 0 %}
+                    <a href="{% url 'update' document.pk %}" class="btn btn-info ml-2">
+                        Редактировать
+                    </a>
+                {% endif %}
                 <a href="{% url 'delete' document.pk %}" class="btn btn-danger ml-2">
                     Удалить
                 </a>

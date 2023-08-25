@@ -1,10 +1,13 @@
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import render, redirect
-from django.views import generic
 from django.db import transaction
+from django.shortcuts import render, redirect, reverse
+from django.utils import timezone
+from django.views import generic
+
+from . import forms
 from . import models
 from . import utils
-from django.utils import timezone
 
 
 # Create your views here.
@@ -18,7 +21,7 @@ class Index(generic.View):
 
 class UploadFileView(LoginRequiredMixin, generic.CreateView):
     model = models.Document
-    template_name = 'create.html'
+    template_name = 'create_doc.html'
     fields = ('file', 'description')
 
     def get_success_url(self):
@@ -45,13 +48,13 @@ class UpdateFileView(LoginRequiredMixin, generic.UpdateView):
 
 class DeleteFileView(LoginRequiredMixin, generic.DeleteView):
     model = models.Document
-    template_name = 'delete.html'
+    template_name = 'delete_doc.html'
     success_url = '/doc/list'
 
 
 class ListFileView(LoginRequiredMixin, generic.ListView):
     model = models.Document
-    template_name = 'list.html'
+    template_name = 'doc_list.html'
     context_object_name = 'files'
 
     def get_queryset(self):
@@ -60,7 +63,7 @@ class ListFileView(LoginRequiredMixin, generic.ListView):
 
 class DetailFileView(LoginRequiredMixin, generic.DetailView):
     model = models.Document
-    template_name = 'detail.html'
+    template_name = 'doc_detail.html'
     context_object_name = 'document'
 
     def get_context_data(self, **kwargs):
@@ -69,27 +72,23 @@ class DetailFileView(LoginRequiredMixin, generic.DetailView):
         return context
 
 
-class CreateApprovalRequest(LoginRequiredMixin, generic.View):
-    template_name = 'approval.html'
+class CreateApprovalRequest(LoginRequiredMixin, generic.CreateView):
+    model = models.ApprovalRequest
+    template_name = 'create_approval.html'
+    form_class = forms.ApprovalRequestForm
 
-    def get(self, request, *args, **kwargs):
-        user = request.user
-        receivers = models.DefaultUser.objects.exclude(id=user.id)
-        documents = models.Document.objects.filter(user=user)
-        context = {'receivers': receivers, 'documents': documents}
-        return render(request, self.template_name, context)
+    def get_success_url(self):
+        return reverse('approvals_history')
 
-    def post(self, request, *args, **kwargs):
-        sender = request.user
-        receivers = request.POST.getlist('receivers')
-        document_id = request.POST.get('document')
-        document = models.Document.objects.get(id=document_id)
-        document.is_approved = False
-        document.save()
-        approval_request = models.ApprovalRequest.objects.create(sender=sender, document=document)
-        approval_request.receivers.set(receivers)
-        approval_request.save()
-        return redirect('home')
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
+    def form_valid(self, form):
+        form.instance.sender = self.request.user
+        form.instance.save()
+        return super().form_valid(form)
 
 
 class ListApprovalRequest(LoginRequiredMixin, generic.ListView):
@@ -112,6 +111,7 @@ class IncomingApprovals(LoginRequiredMixin, generic.ListView):
                 select_related('document', 'sender'))
 
 
+@login_required
 def search(request):
     search_input = request.GET.get('documents') or ''
     if search_input:
@@ -148,11 +148,16 @@ def approve_request(request, approval_request_pk):
         if models.RequestReceivers.are_all_approved(approval_request):
             payload = utils.get_approval_data_dict(request_id=approval_request.id)
 
-            approved_signers = models.RequestReceivers.objects.filter(request_id=approval_request_pk, is_approved=True)
-            initials_and_signs = [(x.receivers.get_initials(), x.receivers.sign_image.path) for x in approved_signers]
             doc_path = approval_request.document.file.path
             signed_doc_path = doc_path
-            utils.sign_pdf_with_single_qr_code(doc_path, signed_doc_path, initials_and_signs, payload)
+            header_content = f"""
+                       <p>ЛИСТ СОГЛАСОВАНИЯ</p>
+                       <p>к {approval_request.document.description} от {approval_request.requested_at.
+            strftime('%Y-%m-%d')}</p>
+                       """
+
+            td = utils.get_table_data(request_id=approval_request.id)
+            utils.generate_pdf_with_qr(doc_path, signed_doc_path, header_content, td, payload)
 
             doc = approval_request.document
             doc.is_approved = True

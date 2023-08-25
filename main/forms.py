@@ -4,28 +4,14 @@ from django.contrib.auth import get_user_model
 from . import models
 
 
-class SharingRequestForm(forms.ModelForm):
-    sender = forms.ModelChoiceField(
-        queryset=get_user_model().objects.all(),
-        widget=forms.Select,
-        required=True,
-        help_text="Select the sender of the approval request."
-    )
-
+class ApprovalRequestForm(forms.ModelForm):
     class Meta:
         model = models.ApprovalRequest
-        fields = ['sender', 'receivers']
+        fields = ('receivers', 'document')
 
-    def __init__(self, *args, **kwargs):
-        sender = kwargs.pop('sender', None)  # Remove 'sender' from kwargs if present
+    def __init__(self, user, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if sender:
-            self.fields['sender'].queryset = get_user_model().objects.filter(id=sender.id)
-
-    def save(self, commit=True):
-        sharing_request = super().save(commit=False)
-        sharing_request.sender = self.cleaned_data['sender']
-        if commit:
-            sharing_request.save()
-            sharing_request.receivers.add(*self.cleaned_data['receivers'])
-        return sharing_request
+        User = get_user_model()
+        self.fields['receivers'].queryset = User.objects.exclude(pk=user.pk)
+        self.fields['document'].queryset = models.Document.objects.select_related('user').filter(user=user,
+                                                                                                 is_approved=False)

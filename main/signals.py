@@ -35,41 +35,42 @@ def delete_image_file(sender, instance, **kwargs):
 
 
 @receiver(post_save, sender=ApprovalRequest)
-def send_approval_request_email(sender, instance, **kwargs):
-    receivers = instance.receivers.all()
-    document = instance.document
-    sender_name = instance.sender.get_full_name()  # Get the email of the user who created the request
+def send_approval_request_email(sender, instance, created, **kwargs):
+    if created:
+        receivers = instance.receivers.all()
+        document = instance.document
+        sender_name = instance.sender.get_full_name()  # Get the email of the user who created the request
 
-    subject = f'Запрос на подтверждение документа: {document.description}'
+        subject = f'Запрос на подтверждение документа: {document.description}'
 
-    port = settings.EMAIL_PORT
-    smtp_server = settings.EMAIL_HOST
-    sender_email = settings.EMAIL_HOST_USER
-    password = settings.EMAIL_HOST_PASSWORD
-    context = ssl.create_default_context()
-    context.check_hostname = False
-    context.verify_mode = ssl.CERT_NONE
+        port = settings.EMAIL_PORT
+        smtp_server = settings.EMAIL_HOST
+        sender_email = settings.EMAIL_HOST_USER
+        password = settings.EMAIL_HOST_PASSWORD
+        context = ssl.create_default_context()
+        context.check_hostname = False
+        context.verify_mode = ssl.CERT_NONE
 
-    for r in receivers:
-        message = (f': Дорогой/ая {r.get_full_name()}, вам пришел запрос на согласование документа : {document.description} от {sender_name}\'.'
-                   'Просим перейти по ссылке: http://10.10.5.5:5000/approvals/list для согласования документа.')
-        message = MIMEText(message, 'plain')
-        msg = MIMEMultipart()
-        msg.attach(message)
-        msg['From'] = sender_email
-        msg['To'] = r.email
-        msg['Subject'] = subject
+        for r in receivers:
+            message = (f': Дорогой/ая {r.get_full_name()}, вам пришел запрос на согласование документа : {document.description} от {sender_name}\'.'
+                       'Просим перейти по ссылке: http://10.10.5.5:5000/approvals/list для согласования документа.')
+            message = MIMEText(message, 'plain')
+            msg = MIMEMultipart()
+            msg.attach(message)
+            msg['From'] = sender_email
+            msg['To'] = r.email
+            msg['Subject'] = subject
 
-        file_path = instance.document.file.path
-        file_name = instance.document.file.name
+            file_path = instance.document.file.path
+            file_name = instance.document.file.name
 
-        with open(file_path, 'rb') as file:
-            attachment = MIMEApplication(file.read(), _subtype="pdf")
-            attachment.add_header('Content-Disposition', f'attachment; filename="{file_name}"')
-            msg.attach(attachment)
+            with open(file_path, 'rb') as file:
+                attachment = MIMEApplication(file.read(), _subtype="pdf")
+                attachment.add_header('Content-Disposition', f'attachment; filename="{file_name}"')
+                msg.attach(attachment)
 
-        with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
-            server.login(sender_email, password)
-            server.sendmail(sender_email, r.email, msg.as_string())
+            with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
+                server.login(sender_email, password)
+                server.sendmail(sender_email, r.email, msg.as_string())
 
 

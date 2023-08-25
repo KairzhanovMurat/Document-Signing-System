@@ -33,7 +33,7 @@ class DefaultUser(AbstractBaseUser, PermissionsMixin):
         return f'{self.first_name} {self.second_name}'
 
     def get_initials(self):
-        return f'{self.second_name} {self.first_name[0]}.{self.last_name[0]}'
+        return f'{self.second_name} {self.first_name[0]}. {self.last_name[0]}'
 
     def __str__(self):
         return self.email
@@ -54,7 +54,7 @@ class Document(models.Model):
         return self.description
 
     def get_absolute_url(self):
-        return reverse('detail', args=[str(self.pk)])
+        return reverse('detail_doc', args=[str(self.pk)])
 
 
 class ApprovalRequest(models.Model):

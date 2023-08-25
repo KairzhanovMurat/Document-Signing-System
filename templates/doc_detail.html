@@ -18,11 +18,11 @@
                     Открыть дкумент
                 </a>
                 {% if requests_count == 0 %}
-                    <a href="{% url 'update' document.pk %}" class="btn btn-info ml-2">
+                    <a href="{% url 'update_doc' document.pk %}" class="btn btn-info ml-2">
                         Редактировать
                     </a>
                 {% endif %}
-                <a href="{% url 'delete' document.pk %}" class="btn btn-danger ml-2">
+                <a href="{% url 'delete_doc' document.pk %}" class="btn btn-danger ml-2">
                     Удалить
                 </a>
             </div>

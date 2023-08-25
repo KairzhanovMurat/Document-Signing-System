@@ -24,16 +24,16 @@
                         <a class="nav-link" href="{% url 'logout' %}">Выйти</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'create' %}">Загрузить</a>
+                        <a class="nav-link" href="{% url 'create_doc' %}">Загрузить</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'list' %}">Список документов</a>
+                        <a class="nav-link" href="{% url 'list_doc' %}">Список документов</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'approval' %}">Отправить на согласование </a>
+                        <a class="nav-link" href="{% url 'approval_create' %}">Отправить на согласование </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'approval_list' %}">История отправок </a>
+                        <a class="nav-link" href="{% url 'approvals_history' %}">История отправок </a>
                     </li>
                     <li class="nav-item">
 
@@ -52,7 +52,7 @@
                 {% endif %}
 
         </ul>
-        <form class="form-inline my-2 my-lg-0" method="get"  action={% url 'search' %}>
+        <form class="form-inline my-2 my-lg-0" method="get"  action={% url 'search_doc' %}>
             <input class="form-control mr-sm-2" type="search" placeholder="название документа" name="documents" aria-label="Search" required>
             <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Искать</button>
         </form>

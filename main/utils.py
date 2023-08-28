@@ -21,10 +21,8 @@ def _generate_qr_code(data):
     return img
 
 
-import pdfkit
-import qrcode
-import os
-from PyPDF2 import PdfWriter, PdfReader, PageObject
+
+
 
 def generate_pdf_with_qr(existing_pdf_path, output_pdf_path, header_content, table_data, qr_data):
     # Prepare the full HTML content for the new page
@@ -158,11 +156,12 @@ def get_approval_data_dict(request_id):
     return approval_data_dict
 
 
-def get_table_data(request_id):
-    data = [["№", "Наименование отдела", "ФИО", "Подпись"], ]
+def get_table_data(sender, request_id):
+    data = [["№", "Наименование отдела", "ФИО", "Подпись"],
+            ["1", sender.job_position, sender.get_initials(), sender.sign_image.path]]
     receivers = models.RequestReceivers.objects.filter(request_id=request_id)
     for idx, user in enumerate(receivers):
-        usr_data = [str(idx + 1), user.receivers.job_position, user.receivers.get_initials(),
+        usr_data = [str(idx + 2), user.receivers.job_position, user.receivers.get_initials(),
                     user.receivers.sign_image.path]
         data.append(usr_data)
     return data

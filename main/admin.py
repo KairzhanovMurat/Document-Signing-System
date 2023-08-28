@@ -1,14 +1,21 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext_lazy as _
+
 from . import models
 
 
 # Register your models here.
 
-class DefaultUserAdmin(UserAdmin):
+class RequestReceivers(admin.TabularInline):
+    model = models.RequestReceivers
+    extra = 1
+
+
+class DefaultUserAdmin(UserAdmin, admin.ModelAdmin):
     ordering = ['id']
     list_display = ['email', 'first_name', 'second_name']
+    inlines = (RequestReceivers,)
     fieldsets = (
         (None, {'fields':
                     ('email',
@@ -49,4 +56,10 @@ class DefaultUserAdmin(UserAdmin):
 
 admin.site.register(models.DefaultUser, DefaultUserAdmin)
 admin.site.register(models.Document)
-admin.site.register(models.ApprovalRequest)
+
+
+class ApprovalRequestAdmin(admin.ModelAdmin):
+    inlines = (RequestReceivers,)
+
+
+admin.site.register(models.ApprovalRequest, ApprovalRequestAdmin)

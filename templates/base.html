@@ -3,6 +3,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Title</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
           integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
@@ -52,8 +55,9 @@
                 {% endif %}
 
         </ul>
-        <form class="form-inline my-2 my-lg-0" method="get"  action={% url 'search_doc' %}>
-            <input class="form-control mr-sm-2" type="search" placeholder="название документа" name="documents" aria-label="Search" required>
+        <form class="form-inline my-2 my-lg-0" method="get" action={% url 'search_doc' %}>
+            <input class="form-control mr-sm-2" type="search" placeholder="название документа" name="documents"
+                   aria-label="Search" required>
             <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Искать</button>
         </form>
     </div>

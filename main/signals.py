@@ -6,7 +6,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 from django.conf import settings
-from django.db.models.signals import pre_delete, post_save
+from django.db.models.signals import pre_delete, post_save, m2m_changed
 from django.dispatch.dispatcher import receiver
 
 from .models import Document, ApprovalRequest, DefaultUser
@@ -34,9 +34,9 @@ def delete_image_file(sender, instance, **kwargs):
                 os.rmdir(folder_path)
 
 
-@receiver(post_save, sender=ApprovalRequest)
-def send_approval_request_email(sender, instance, created, **kwargs):
-    if created:
+@receiver(m2m_changed, sender=ApprovalRequest.receivers.through)
+def send_approval_request_email(sender, instance, action, **kwargs):
+    if action == 'post_add':
         receivers = instance.receivers.all()
         document = instance.document
         sender_name = instance.sender.get_full_name()  # Get the email of the user who created the request
@@ -52,8 +52,9 @@ def send_approval_request_email(sender, instance, created, **kwargs):
         context.verify_mode = ssl.CERT_NONE
 
         for r in receivers:
-            message = (f': Дорогой/ая {r.get_full_name()}, вам пришел запрос на согласование документа : {document.description} от {sender_name}\'.'
-                       'Просим перейти по ссылке: http://10.10.5.5:5000/approvals/list для согласования документа.')
+            message = (
+                f': Дорогой/ая {r.get_full_name()}, вам пришел запрос на согласование документа : {document.description} от {sender_name}\'.'
+                'Просим перейти по ссылке: http://10.10.5.5:5000/approvals/list для согласования документа.')
             message = MIMEText(message, 'plain')
             msg = MIMEMultipart()
             msg.attach(message)
@@ -72,5 +73,3 @@ def send_approval_request_email(sender, instance, created, **kwargs):
             with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
                 server.login(sender_email, password)
                 server.sendmail(sender_email, r.email, msg.as_string())
-
-

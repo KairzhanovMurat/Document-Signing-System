@@ -1,7 +1,9 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
-from django.shortcuts import render, redirect, reverse
+from django.http import Http404
+from django.shortcuts import render, redirect
+from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views import generic
 
@@ -37,6 +39,12 @@ class UpdateFileView(LoginRequiredMixin, generic.UpdateView):
     template_name = 'update.html'
     fields = ('file', 'description')
 
+    def dispatch(self, request, *args, **kwargs):
+        doc = self.get_object()
+        if doc.user != self.request.user:
+            raise Http404()
+        return super().dispatch(request, *args, **kwargs)
+
     def get_success_url(self):
         return self.object.get_absolute_url()
 
@@ -49,7 +57,13 @@ class UpdateFileView(LoginRequiredMixin, generic.UpdateView):
 class DeleteFileView(LoginRequiredMixin, generic.DeleteView):
     model = models.Document
     template_name = 'delete_doc.html'
-    success_url = '/doc/list'
+    success_url = reverse_lazy('list_doc')
+
+    def dispatch(self, request, *args, **kwargs):
+        doc = self.get_object()
+        if doc.user != self.request.user:
+            raise Http404()
+        return super().dispatch(request, *args, **kwargs)
 
 
 class ListFileView(LoginRequiredMixin, generic.ListView):
@@ -66,6 +80,12 @@ class DetailFileView(LoginRequiredMixin, generic.DetailView):
     template_name = 'doc_detail.html'
     context_object_name = 'document'
 
+    def dispatch(self, request, *args, **kwargs):
+        doc = self.get_object()
+        if doc.user != self.request.user:
+            raise Http404()
+        return super().dispatch(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data()
         context['requests_count'] = self.object.approval_requests.count()
@@ -76,9 +96,7 @@ class CreateApprovalRequest(LoginRequiredMixin, generic.CreateView):
     model = models.ApprovalRequest
     template_name = 'create_approval.html'
     form_class = forms.ApprovalRequestForm
-
-    def get_success_url(self):
-        return reverse('approvals_history')
+    success_url = reverse_lazy('approvals_history')
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -87,7 +105,6 @@ class CreateApprovalRequest(LoginRequiredMixin, generic.CreateView):
 
     def form_valid(self, form):
         form.instance.sender = self.request.user
-        form.instance.save()
         return super().form_valid(form)
 
 
@@ -152,11 +169,12 @@ def approve_request(request, approval_request_pk):
             signed_doc_path = doc_path
             header_content = f"""
                        <p>ЛИСТ СОГЛАСОВАНИЯ</p>
-                       <p>к {approval_request.document.description} от {approval_request.requested_at.
+                       <p>к документу '{approval_request.document.description}' от {approval_request.requested_at.
             strftime('%Y-%m-%d')}</p>
                        """
 
-            td = utils.get_table_data(request_id=approval_request.id)
+            td = utils.get_table_data(sender=approval_request.sender,
+                                      request_id=approval_request.id)
             utils.generate_pdf_with_qr(doc_path, signed_doc_path, header_content, td, payload)
 
             doc = approval_request.document
@@ -166,3 +184,11 @@ def approve_request(request, approval_request_pk):
             doc.save()
 
         return redirect('incoming_approvals')
+
+
+def custom_404_view(request, exception):
+    return render(request, 'exception_pages/404.html', status=404)
+
+
+def custom_500_view(request):
+    return render(request, 'exception_pages/500.html', status=500)

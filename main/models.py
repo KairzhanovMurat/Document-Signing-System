@@ -23,8 +23,9 @@ class DefaultUser(AbstractBaseUser, PermissionsMixin):
     second_name = models.CharField(max_length=128, null=True, verbose_name='Фамилия')
     last_name = models.CharField(max_length=128, verbose_name='Отчество')
     email = models.EmailField(unique=True, verbose_name='внутренняя почта')
-    sign_image = models.ImageField(blank=True, upload_to=image_upload_path, verbose_name='Изображение подписи')
-    job_position = models.CharField(max_length=255, blank=True, verbose_name='Должность')
+    sign_image = models.ImageField(upload_to=image_upload_path, verbose_name='Изображение подписи',
+                                   validators=[validators.validate_png])
+    job_position = models.CharField(max_length=255, verbose_name='Должность')
 
     is_staff = models.BooleanField(default=False, verbose_name='Доступ к админ панели')
     is_active = models.BooleanField(default=True, verbose_name='Активен')

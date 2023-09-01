@@ -6,7 +6,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 from django.conf import settings
-from django.db.models.signals import pre_delete, post_save, m2m_changed
+from django.db.models.signals import pre_delete, m2m_changed
 from django.dispatch.dispatcher import receiver
 
 from .models import Document, ApprovalRequest, DefaultUser
@@ -54,7 +54,7 @@ def send_approval_request_email(sender, instance, action, **kwargs):
         for r in receivers:
             message = (
                 f': Дорогой/ая {r.get_full_name()}, вам пришел запрос на согласование документа : {document.description} от {sender_name}\'.'
-                'Просим перейти по ссылке: http://10.10.5.5:5000/approvals/list для согласования документа.')
+                'Просим перейти по ссылке: http://10.10.5.5:5000/approvals/incoming для согласования документа.')
             message = MIMEText(message, 'plain')
             msg = MIMEMultipart()
             msg.attach(message)

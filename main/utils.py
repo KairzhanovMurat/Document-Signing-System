@@ -1,8 +1,14 @@
 import os
+import smtplib
+import ssl
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 import pdfkit
 import qrcode
 from PyPDF2 import PdfWriter, PdfReader
+from django.conf import settings
 
 from . import models
 
@@ -19,9 +25,6 @@ def _generate_qr_code(data):
 
     img = qr.make_image(fill_color="black", back_color="white")
     return img
-
-
-
 
 
 def generate_pdf_with_qr(existing_pdf_path, output_pdf_path, header_content, table_data, qr_data):
@@ -165,3 +168,36 @@ def get_table_data(sender, request_id):
                     user.receivers.sign_image.path]
         data.append(usr_data)
     return data
+
+
+def send_success_email(receiver: models.DefaultUser, document: models.Document):
+    subject = f'Документ согласован.'
+
+    port = settings.EMAIL_PORT
+    smtp_server = settings.EMAIL_HOST
+    sender_email = settings.EMAIL_HOST_USER
+    password = settings.EMAIL_HOST_PASSWORD
+    context = ssl.create_default_context()
+    context.check_hostname = False
+    context.verify_mode = ssl.CERT_NONE
+
+    message = (
+        f"""Дорогой/ая {receiver.get_full_name()}, ваш документ "{document.description}" успешно согласован.""")
+    message = MIMEText(message, 'plain')
+    msg = MIMEMultipart()
+    msg.attach(message)
+    msg['From'] = sender_email
+    msg['To'] = receiver.email
+    msg['Subject'] = subject
+
+    file_path = document.file.path
+    file_name = document.file.name
+
+    with open(file_path, 'rb') as file:
+        attachment = MIMEApplication(file.read(), _subtype="pdf")
+        attachment.add_header('Content-Disposition', f'attachment; filename="{file_name}"')
+        msg.attach(attachment)
+
+    with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
+        server.login(sender_email, password)
+        server.sendmail(sender_email, receiver.email, msg.as_string())

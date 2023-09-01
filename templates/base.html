@@ -30,7 +30,12 @@
                         <a class="nav-link" href="{% url 'create_doc' %}">Загрузить</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'list_doc' %}">Список документов</a>
+                        <a class="nav-link" href="{% url 'list_doc' %}">Список документов
+                            {% with badge_count=request.user|approved_requests_badge %}
+                                {% if badge_count > 0 %}
+                                    <span class="badge badge-primary">{{ badge_count }}</span>
+                                {% endif %}
+                            {% endwith %}</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'approval_create' %}">Отправить на согласование </a>

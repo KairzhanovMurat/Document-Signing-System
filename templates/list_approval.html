@@ -17,7 +17,7 @@
                 <tr>
                     <td>
                         {% for receiver in approval_request.receivers.all %}
-                            {{ receiver.email }}
+                            {{ receiver.get_initials }}
                             {% if not forloop.last %}, {% endif %}
                         {% endfor %}
                     </td>
@@ -33,7 +33,7 @@
                     <td>
                         {% for receiver in approval_request.requestreceivers_set.all %}
                             {% if receiver.is_approved %}
-                                {{ receiver.receivers.email }}
+                                {{ receiver.receivers.get_initials }}
                                 {% if not forloop.last %}, {% endif %}
                             {% endif %}
                         {% endfor %}

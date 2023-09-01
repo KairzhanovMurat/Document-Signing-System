@@ -1,0 +1,21 @@
+diff -u installed_packages.txt used_packages.txtDjango==4.2.4
+├── asgiref [required: >=3.6.0,<4, installed: 3.7.2]
+│   └── typing-extensions [required: >=4, installed: 4.7.1]
+└── sqlparse [required: >=0.3.1, installed: 0.4.4]
+django-crispy-forms==1.14.0
+pdfkit==1.0.0
+pdfrw==0.4
+pip==22.3.1
+pipdeptree==2.13.0
+psycopg2==2.9.7
+PyMuPDF==1.22.5
+pypdf==3.15.2
+pypdf2==3.0.1
+python-decouple==3.8
+qrcode==7.4.2
+├── pypng [required: Any, installed: 0.20220715.0]
+└── typing-extensions [required: Any, installed: 4.7.1]
+reportlab==4.0.4
+└── Pillow [required: >=9.0.0, installed: 10.0.0]
+setuptools==65.5.1
+wheel==0.38.4

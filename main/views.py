@@ -172,9 +172,9 @@ def approve_request(request, approval_request_pk):
                        <p>к документу '{approval_request.document.description}' от {approval_request.requested_at.
             strftime('%Y-%m-%d')}</p>
                        """
-
             td = utils.get_table_data(sender=approval_request.sender,
                                       request_id=approval_request.id)
+
             utils.generate_pdf_with_qr(doc_path, signed_doc_path, header_content, td, payload)
 
             doc = approval_request.document
@@ -182,6 +182,8 @@ def approve_request(request, approval_request_pk):
             approval_request.is_approved = True
             approval_request.save()
             doc.save()
+
+            utils.send_success_email(approval_request.sender, approval_request.document)
 
         return redirect('incoming_approvals')
 

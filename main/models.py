@@ -74,7 +74,7 @@ class ApprovalRequest(models.Model):
     is_approved = models.BooleanField(default=False, verbose_name='Статус подтверждения')
 
     def __str__(self):
-        return f'Отправитель: {self.sender}.  Документ: {self.document.description}'
+        return f'Отправитель: {self.sender.get_initials()}.  Документ: {self.document.description}'
 
     class Meta:
         verbose_name_plural = 'Заявки на согласование'
@@ -88,6 +88,9 @@ class RequestReceivers(models.Model):
     @staticmethod
     def are_all_approved(request_instance):
         return RequestReceivers.objects.filter(request=request_instance, is_approved=False).count() == 0
+
+    class Meta:
+        verbose_name_plural = 'Получатели'
 
 
 class UserApprovalData(models.Model):

@@ -7,6 +7,7 @@ from email.mime.text import MIMEText
 
 import pdfkit
 import qrcode
+from PIL import Image
 from PyPDF2 import PdfWriter, PdfReader
 from django.conf import settings
 
@@ -37,11 +38,6 @@ def generate_pdf_with_qr(existing_pdf_path, output_pdf_path, header_content, tab
     body {{
       position: relative;
     }}
-    .qr-code {{
-      position: fixed;
-      bottom: -800px;
-      right: 0px; 
-    }}
 
     table {{
       border-collapse: collapse;
@@ -67,6 +63,10 @@ def generate_pdf_with_qr(existing_pdf_path, output_pdf_path, header_content, tab
       text-align: center;
     }}
 
+    .qr-code {{
+      text-align: right;
+    }}
+
     </style>
     </head>
     <body>
@@ -89,23 +89,22 @@ def generate_pdf_with_qr(existing_pdf_path, output_pdf_path, header_content, tab
         html_row += "</tr>"
         full_html += html_row
 
+    # Add a new row for the QR code
     full_html += """
-    </table>
-
-    <div class="qr-code">
-    """
+    <tr>
+      <td colspan="{0}" class="qr-code">
+    """.format(len(table_data[0]))  # Calculate the number of columns in the table
 
     qr_code_img = _generate_qr_code(qr_data)
     qr_code_img_path = "qr_code.png"
     qr_code_img.save(qr_code_img_path)
 
     qr_code_abs_path = os.path.abspath(qr_code_img_path)
-    full_html += f'<img src="{qr_code_abs_path}" alt="QR Code" width="300" height="300">'
+    full_html += f'<img src="{qr_code_abs_path}" alt="QR Code" width="250" height="250">'
     full_html += """
-    </div>
-
-    </body>
-    </html>
+      </td>
+    </tr>
+    </table>
     """
 
     # Generate the PDF for the new page
@@ -118,17 +117,19 @@ def generate_pdf_with_qr(existing_pdf_path, output_pdf_path, header_content, tab
     pdfkit.from_string(full_html, new_page_pdf_path, options=options)
 
     # Merge the new page PDF with the existing PDF
-    existing_pdf = PdfReader(existing_pdf_path)
-    new_page_pdf = PdfReader(new_page_pdf_path)
+    existing_pdf = PdfReader(open(existing_pdf_path, "rb"))
+    new_page_pdf = PdfReader(open(new_page_pdf_path, "rb"))
 
     output_pdf = PdfWriter()
 
     # Add existing pages
-    for page in existing_pdf.pages:
+    for page_num in range(len(existing_pdf.pages)):
+        page = existing_pdf.pages[page_num]
         output_pdf.add_page(page)
 
     # Add new page at the end
-    for page in new_page_pdf.pages:
+    for page_num in range(len(new_page_pdf.pages)):
+        page = new_page_pdf.pages[page_num]
         output_pdf.add_page(page)
 
     # Save the output PDF
@@ -159,11 +160,33 @@ def get_approval_data_dict(request_id):
     return approval_data_dict
 
 
+def optimize_png(input_path):
+    try:
+        with Image.open(input_path) as img:
+            grayscale_img = img.convert('L')
+            threshold = 128
+            mask = grayscale_img.point(lambda p: p < threshold and 255)
+
+            bbox = mask.getbbox()
+
+            if bbox is None:
+                print("No black pixels found. Image is empty.")
+                return
+
+            cropped_img = img.crop(bbox)
+
+            cropped_img.save(input_path, "PNG")
+    except Exception as e:
+        print(f"Error optimizing PNG: {str(e)}")
+
+
 def get_table_data(sender, request_id):
+    optimize_png(sender.sign_image.path)
     data = [["№", "Наименование отдела", "ФИО", "Подпись"],
             ["1", sender.job_position, sender.get_initials(), sender.sign_image.path]]
     receivers = models.RequestReceivers.objects.filter(request_id=request_id)
     for idx, user in enumerate(receivers):
+        optimize_png(user.receivers.sign_image.path)
         usr_data = [str(idx + 2), user.receivers.job_position, user.receivers.get_initials(),
                     user.receivers.sign_image.path]
         data.append(usr_data)

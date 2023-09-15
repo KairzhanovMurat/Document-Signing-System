@@ -18,6 +18,7 @@ urlpatterns = [
     path('approvals/list', views.ListApprovalRequest.as_view(), name='approvals_history'),
     path('approvals/incoming', views.IncomingApprovals.as_view(), name='incoming_approvals'),
     path('approvals/approve/<int:approval_request_pk>/', views.approve_request, name='approve_request'),
+    path('approvals/history', views.ApprovalsHistoryView.as_view(), name='signed_approvals_history')
 ]
 
 handler404 = views.custom_404_view

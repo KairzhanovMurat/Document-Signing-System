@@ -188,6 +188,15 @@ def approve_request(request, approval_request_pk):
         return redirect('incoming_approvals')
 
 
+class ApprovalsHistoryView(IncomingApprovals):
+    template_name = 'approvals_history.html'
+
+
+    def get_queryset(self):
+        user_id = self.request.user.id
+        return (models.ApprovalRequest.objects.filter(receivers=user_id, requestreceivers__is_approved=True).
+                select_related('document', 'sender'))
+
 def custom_404_view(request, exception):
     return render(request, 'exception_pages/404.html', status=404)
 

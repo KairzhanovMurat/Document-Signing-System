@@ -80,6 +80,9 @@ class ApprovalRequest(models.Model):
     class Meta:
         verbose_name_plural = 'Заявки на согласование'
 
+    def get_absolute_url(self):
+        return reverse('update_approval', args=[str(self.pk)])
+
 
 class RequestReceivers(models.Model):
     request = models.ForeignKey(ApprovalRequest, on_delete=models.CASCADE)

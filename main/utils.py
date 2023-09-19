@@ -224,3 +224,36 @@ def send_success_email(receiver: models.DefaultUser, document: models.Document):
     with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
         server.login(sender_email, password)
         server.sendmail(sender_email, receiver.email, msg.as_string())
+
+
+def send_notification_email(receiver: models.DefaultUser, sender: models.DefaultUser, document: models.Document):
+    subject = f'Входящий документ.'
+
+    port = settings.EMAIL_PORT
+    smtp_server = settings.EMAIL_HOST
+    sender_email = settings.EMAIL_HOST_USER
+    password = settings.EMAIL_HOST_PASSWORD
+    context = ssl.create_default_context()
+    context.check_hostname = False
+    context.verify_mode = ssl.CERT_NONE
+
+    message = (
+        f"""Дорогой/ая {receiver.get_full_name()}, вам пришел документ: "{document.description}" от {sender.get_full_name()}.""")
+    message = MIMEText(message, 'plain')
+    msg = MIMEMultipart()
+    msg.attach(message)
+    msg['From'] = sender_email
+    msg['To'] = receiver.email
+    msg['Subject'] = subject
+
+    file_path = document.file.path
+    file_name = document.file.name
+
+    with open(file_path, 'rb') as file:
+        attachment = MIMEApplication(file.read(), _subtype="pdf")
+        attachment.add_header('Content-Disposition', f'attachment; filename="{file_name}"')
+        msg.attach(attachment)
+
+    with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
+        server.login(sender_email, password)
+        server.sendmail(sender_email, receiver.email, msg.as_string())

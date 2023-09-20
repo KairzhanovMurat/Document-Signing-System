@@ -122,11 +122,12 @@ class CreateApprovalRequest(LoginRequiredMixin, generic.CreateView):
         return self.object.get_absolute_url()
 
 
+@login_required
 @transaction.atomic
 def update_approval(request, pk):
     approval = models.ApprovalRequest.objects.get(pk=pk)
     context = dict()
-    context['all_receivers'] = User.objects.all()
+    context['all_receivers'] = User.objects.exclude(pk=request.user.pk)
     context['approval_receivers'] = approval.receivers.all()
     context['approval'] = approval
     context['receiver_not_found'] = False
@@ -149,12 +150,14 @@ def update_approval(request, pk):
     return render(request, 'update_approval.html', context=context)
 
 
+@transaction.atomic
 def delete_approval(request, pk):
     approval = models.ApprovalRequest.objects.get(pk=pk)
     approval.delete()
     return redirect('approval_create')
 
 
+@transaction.atomic
 def delete_receiver(request, request_id, receiver_id):
     receiver = models.RequestReceivers.objects.filter(request_id=request_id, receivers=receiver_id).first()
     receiver.delete()
@@ -242,13 +245,15 @@ def approve_request(request, approval_request_pk):
         return redirect('incoming_approvals')
 
 
-class ApprovalsHistoryView(IncomingApprovals):
+class ApprovalsHistoryView(LoginRequiredMixin, generic.ListView):
+    context_object_name = 'approvals'
+    model = models.UserApprovalData
     template_name = 'approvals_history.html'
 
     def get_queryset(self):
         user_id = self.request.user.id
-        return (models.ApprovalRequest.objects.filter(receivers=user_id, requestreceivers__is_approved=True).
-                select_related('document', 'sender'))
+        return self.model.objects.filter(user_id=user_id).select_related('approval_request',
+                                                                         'approval_request__document')
 
 
 def custom_404_view(request, exception):

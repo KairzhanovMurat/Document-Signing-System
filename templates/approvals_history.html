@@ -6,12 +6,15 @@
         <ul class="list-group">
             {% for approval_request in approvals %}
                 <li class="list-group-item">
-                    <h4 class="mb-2">Отправитель: {{ approval_request.sender }}</h4>
-                    <p><strong>Описание:</strong> {{ approval_request.document.description }}</p>
-                    <p><strong>Дата отправки:</strong> {{ approval_request.requested_at }}</p>
+                    <h4 class="mb-2">Отправитель: {{ approval_request.approval_request.sender }}</h4>
+                    <p><strong>Описание:</strong> {{ approval_request.approval_request.document.description }}</p>
+                    <p><strong>Дата отправки:</strong> {{ approval_request.approval_request.requested_at }}</p>
+                    <p><strong>Время подписания:</strong> {{ approval_request.approval_time }}</p>
+                    <p><strong>IP адрес:</strong> {{ approval_request.ip_address }}</p>
+                    <p><strong>Браузер:</strong> {{ approval_request.browser }}</p>
                     <p>
                         <strong>Подписавшие:</strong>
-                        {% for receiver in approval_request.requestreceivers_set.all %}
+                        {% for receiver in approval_request.approval_request.requestreceivers_set.all %}
                             {% if receiver.is_approved %}
                                 {{ receiver.receivers.get_initials }}
                             {% endif %}
@@ -19,7 +22,7 @@
                     </p>
                     <p>
                         <strong>Ожидаются подписи от:</strong>
-                        {% for receiver in approval_request.requestreceivers_set.all %}
+                        {% for receiver in approval_request.approval_request.requestreceivers_set.all %}
                             {% if  not receiver.is_approved %}
                                 {{ receiver.receivers.get_initials }}
                             {% endif %}
@@ -27,7 +30,7 @@
                     </p>
 
 
-                    <a href="{{ approval_request.document.file.url }}" target="_blank" class="btn btn-info ml-2">Открыть
+                    <a href="{{ approval_request.approval_request.document.file.url }}" target="_blank" class="btn btn-info ml-2">Открыть
                         документ</a>
 
                 </li>

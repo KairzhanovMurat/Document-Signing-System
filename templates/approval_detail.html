@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}
+    {{ approval.approval_request.document.description }}
+{% endblock %}
+{% block content %}
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12 mb-4">
+                <a href="{% url 'approvals_history' %}" class="btn btn-success">Назад к списку</a>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Информация о {{ approval.approval_request.document.description }}</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="document-info">
+                            <h4 class="card-subtitle mb-2">Документ:</h4>
+                            <ul class="list-group">
+                                <li class="list-group-item">
+                                    <strong>Описание:</strong> {{ approval.approval_request.document.description }}
+                                </li>
+                                <li class="list-group-item">
+                                    <strong>Отправитель:</strong> {{ approval.approval_request.sender }}
+                                </li>
+                                <li class="list-group-item">
+                                    <strong>Дата отправки запроса:</strong> {{ approval.approval_request.requested_at }} UTC
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="approver-info mt-4">
+                            <h4 class="card-subtitle mb-2">Подписавший:</h4>
+                            <ul class="list-group">
+                                <li class="list-group-item">
+                                    <strong>Дата подписания:</strong> {{ approval.approval_time }} UTC
+                                </li>
+                                <li class="list-group-item">
+                                    <strong>IP адрес:</strong> {{ approval.ip_address }}
+                                </li>
+                                <li class="list-group-item">
+                                    <strong>Браузер:</strong> {{ approval.browser }}
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="receivers-info mt-4">
+                            <h4 class="card-subtitle mb-2">Получатели:</h4>
+                            <ul class="list-group">
+                                <li class="list-group-item">
+                                    <strong>Подписавшие:</strong>
+                                    <ul>
+                                        {% for receiver in approval.approval_request.requestreceivers_set.all %}
+                                            {% if receiver.is_approved %}
+                                                <li>{{ receiver.receivers.get_initials }}</li>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </ul>
+                                </li>
+                                <li class="list-group-item">
+                                    <strong>Ожидаются подписи от:</strong>
+                                    <ul>
+                                        {% for receiver in approval.approval_request.requestreceivers_set.all %}
+                                            {% if not receiver.is_approved %}
+                                                <li>{{ receiver.receivers.get_initials }}</li>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="mt-4">
+                            <a href="{{ approval.approval_request.document.file.url }}" target="_blank" class="btn btn-info">Открыть документ</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

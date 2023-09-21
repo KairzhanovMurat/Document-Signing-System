@@ -136,14 +136,14 @@ def update_approval(request, pk):
     if request.method == 'POST':
         receiver_second_name = request.POST['receiver_name']
         receiver = User.objects.filter(second_name=receiver_second_name).first()
-        # doc = approval.document
-        # sender = approval.sender
+        doc = approval.document
+        sender = approval.sender
         if receiver and receiver.id != request.user.id:
             models.RequestReceivers.objects.create(receivers_id=receiver.id, request_id=approval.id)
-            # try:
-            #     utils.send_notification_email(sender=sender, receiver=receiver, document=doc)
-            # except:
-            #     pass
+            try:
+                utils.send_notification_email(sender=sender, receiver=receiver, document=doc)
+            except:
+                pass
 
         else:
             context['receiver_not_found'] = True
@@ -238,10 +238,10 @@ def approve_request(request, approval_request_pk):
             approval_request.is_approved = True
             approval_request.save()
             doc.save()
-            # try:
-            #     utils.send_success_email(approval_request.sender, approval_request.document)
-            # except:
-            #     pass
+            try:
+                utils.send_success_email(approval_request.sender, approval_request.document)
+            except:
+                pass
         return redirect('incoming_approvals')
 
 
@@ -254,6 +254,18 @@ class ApprovalsHistoryView(LoginRequiredMixin, generic.ListView):
         user_id = self.request.user.id
         return self.model.objects.filter(user_id=user_id).select_related('approval_request',
                                                                          'approval_request__document')
+
+
+class ApprovalDetailView(LoginRequiredMixin, generic.DetailView):
+    model = models.UserApprovalData
+    template_name = 'approval_detail.html'
+    context_object_name = 'approval'
+
+    def dispatch(self, request, *args, **kwargs):
+        approval = self.get_object()
+        if approval.user != self.request.user:
+            raise Http404()
+        return super().dispatch(request, *args, **kwargs)
 
 
 def custom_404_view(request, exception):

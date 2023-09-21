@@ -11,6 +11,7 @@
                 <th>Дата запроса:</th>
                 <th>Статус</th>
                 <th>Подписавшие</th>
+                <th></th>
             </tr>
             </thead>
             <tbody>
@@ -39,6 +40,10 @@
                             {% endif %}
                         {% endfor %}
                     </td>
+                    {% if  not approval_request.is_approved %}
+                        <td><a href="{% url 'update_approval' approval_request.pk %}" class="btn btn-warning">Редактировать</a>
+                        </td>
+                    {% endif %}
                 </tr>
             {% endfor %}
             </tbody>

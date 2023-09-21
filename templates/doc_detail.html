@@ -7,7 +7,7 @@
             <div class="card-body">
                 <h5 class="card-title">{{ document.description }}</h5>
                 <p class="card-text">Владелец: {{ document.user }}</p>
-                <p class="card-text">Дата загрузки: {{ document.uploaded_at }}</p>
+                <p class="card-text">Дата загрузки: {{ document.uploaded_at }} UTC</p>
                 <p class="card-text">
                     {% if document.is_approved %}
                         <span class="badge badge-success">Согласован</span>

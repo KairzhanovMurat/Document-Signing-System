@@ -8,7 +8,7 @@
                 <li class="list-group-item">
                     <h4 class="mb-2">Отправитель: {{ approval_request.sender }}</h4>
                     <p><strong>Описание:</strong> {{ approval_request.document.description }}</p>
-                    <p><strong>Дата отправки:</strong> {{ approval_request.requested_at }}</p>
+                    <p><strong>Дата отправки:</strong> {{ approval_request.requested_at }} UTC</p>
                      <p>
                         <strong>Подписавшие:</strong>
                         {% for receiver in approval_request.requestreceivers_set.all %}

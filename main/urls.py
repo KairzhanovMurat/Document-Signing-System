@@ -21,7 +21,9 @@ urlpatterns = [
     path('approvals/approve/<int:approval_request_pk>/', views.approve_request, name='approve_request'),
     path('approvals/history', views.ApprovalsHistoryView.as_view(), name='signed_approvals_history'),
     path('approvals/delete/<int:pk>', views.delete_approval, name='delete_approval'),
-    path('approvals/detail/<int:pk>', views.ApprovalDetailView.as_view(), name='approval_detail')
+    path('approvals/detail/<int:pk>', views.ApprovalDetailView.as_view(), name='approval_detail'),
+    path('approval/reject/<int:request_id>', views.reject_approval, name='reject_approval'),
+    path('approvals/sender/detail/<int:pk>', views.ApprovalRequestDetail.as_view(), name='sender_approval_detail')
 ]
 
 handler404 = views.custom_404_view

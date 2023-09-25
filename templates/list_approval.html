@@ -3,27 +3,21 @@
 {% block content %}
     <div class="container mt-5">
         <h1>Отправленные запросы</h1>
-        <table class="table">
-            <thead>
+        <table class="table table-bordered">
+            <thead class="thead-dark">
             <tr>
-                <th>Получатели</th>
                 <th>Описание</th>
-                <th>Дата запроса:</th>
+                <th>Дата запроса</th>
                 <th>Статус</th>
-                <th>Подписавшие</th>
-                <th></th>
+
             </tr>
             </thead>
             <tbody>
             {% for approval_request in approval_requests %}
                 <tr>
                     <td>
-                        {% for receiver in approval_request.receivers.all %}
-                            {{ receiver.get_initials }}
-                            {% if not forloop.last %}, {% endif %}
-                        {% endfor %}
+                        <a href="{% url 'sender_approval_detail' approval_request.pk %}">{{ approval_request.document.description }}</a>
                     </td>
-                    <td>{{ approval_request.document.description }}</td>
                     <td>{{ approval_request.requested_at }}</td>
                     <td>
                         {% if approval_request.is_approved %}
@@ -32,18 +26,8 @@
                             <span class="badge badge-warning">Ожидает подписи</span>
                         {% endif %}
                     </td>
-                    <td>
-                        {% for receiver in approval_request.requestreceivers_set.all %}
-                            {% if receiver.is_approved %}
-                                {{ receiver.receivers.get_initials }}
-                                {% if not forloop.last %}, {% endif %}
-                            {% endif %}
-                        {% endfor %}
-                    </td>
-                    {% if  not approval_request.is_approved %}
-                        <td><a href="{% url 'update_approval' approval_request.pk %}" class="btn btn-warning">Редактировать</a>
-                        </td>
-                    {% endif %}
+
+
                 </tr>
             {% endfor %}
             </tbody>

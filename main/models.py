@@ -89,6 +89,8 @@ class RequestReceivers(models.Model):
     request = models.ForeignKey(ApprovalRequest, on_delete=models.CASCADE)
     receivers = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     is_approved = models.BooleanField(default=False)
+    is_disapproved = models.BooleanField(default=False)
+    comment = models.CharField(max_length=255, blank=True)
 
     @staticmethod
     def are_all_approved(request_instance):

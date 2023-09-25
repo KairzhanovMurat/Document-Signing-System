@@ -138,7 +138,7 @@ def update_approval(request, pk):
         receiver = User.objects.filter(second_name=receiver_second_name).first()
         doc = approval.document
         sender = approval.sender
-        if receiver and receiver.id != request.user.id:
+        if receiver and receiver.id != request.user.id and receiver not in approval.receivers.all():
             models.RequestReceivers.objects.create(receivers_id=receiver.id, request_id=approval.id)
             try:
                 utils.send_notification_email(sender=sender, receiver=receiver, document=doc)
@@ -173,6 +173,29 @@ class ListApprovalRequest(LoginRequiredMixin, generic.ListView):
         return models.ApprovalRequest.objects.filter(sender=self.request.user).select_related('document')
 
 
+class ApprovalRequestDetail(LoginRequiredMixin, generic.DetailView):
+    template_name = 'sender_approval_detail.html'
+    model = models.ApprovalRequest
+    context_object_name = 'approval'
+
+    def dispatch(self, request, *args, **kwargs):
+        approval = self.get_object()
+        if approval.sender != self.request.user:
+            raise Http404()
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        approval = self.get_object()
+        ctxt = super().get_context_data()
+        ctxt['approved_receivers'] = models.RequestReceivers.objects.filter(request_id=approval.id, is_approved=True)
+        ctxt['all_receivers'] = models.RequestReceivers.objects.filter(request_id=approval.id, is_approved=False,
+                                                                       is_disapproved=False)
+        ctxt['rejected_receivers'] = models.RequestReceivers.objects.filter(request_id=approval.id, is_disapproved=True)
+        ctxt['is_rejected'] = bool(
+            models.RequestReceivers.objects.filter(request_id=approval.id, is_disapproved=True).count())
+        return ctxt
+
+
 class IncomingApprovals(LoginRequiredMixin, generic.ListView):
     model = models.ApprovalRequest
     context_object_name = 'approvals'
@@ -180,7 +203,8 @@ class IncomingApprovals(LoginRequiredMixin, generic.ListView):
 
     def get_queryset(self):
         user_id = self.request.user.id
-        return (models.ApprovalRequest.objects.filter(receivers=user_id, requestreceivers__is_approved=False).
+        return (models.ApprovalRequest.objects.filter(receivers=user_id, requestreceivers__is_approved=False,
+                                                      requestreceivers__is_disapproved=False).
                 select_related('document', 'sender'))
 
 
@@ -266,6 +290,20 @@ class ApprovalDetailView(LoginRequiredMixin, generic.DetailView):
         if approval.user != self.request.user:
             raise Http404()
         return super().dispatch(request, *args, **kwargs)
+
+
+@login_required
+@transaction.atomic
+def reject_approval(request, request_id):
+    receiver_id = request.user.id
+    receiver = models.RequestReceivers.objects.filter(request_id=request_id, receivers=receiver_id).first()
+    if request.method == 'POST':
+        comment = request.POST.get('comment')
+        receiver.comment = comment
+        receiver.is_disapproved = True
+        receiver.save()
+        return redirect('incoming_approvals')
+    return render(request, 'comment_page.html')
 
 
 def custom_404_view(request, exception):

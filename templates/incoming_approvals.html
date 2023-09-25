@@ -9,29 +9,38 @@
                     <h4 class="mb-2">Отправитель: {{ approval_request.sender }}</h4>
                     <p><strong>Описание:</strong> {{ approval_request.document.description }}</p>
                     <p><strong>Дата отправки:</strong> {{ approval_request.requested_at }} UTC</p>
-                     <p>
+                    <p>
                         <strong>Подписавшие:</strong>
                         {% for receiver in approval_request.requestreceivers_set.all %}
                             {% if receiver.is_approved %}
-                            {{  receiver.receivers.get_initials}}
+                                {{ receiver.receivers.get_initials }}
                             {% endif %}
-                            {% endfor %}
-                            </p>
-                 <p>
+                        {% endfor %}
+                    </p>
+                    <p>
                         <strong>Ожидаются подписи от:</strong>
                         {% for receiver in approval_request.requestreceivers_set.all %}
                             {% if  not receiver.is_approved %}
-                            {{  receiver.receivers.get_initials}}
+                                {{ receiver.receivers.get_initials }}
                             {% endif %}
-                            {% endfor %}
-                            </p>
+                        {% endfor %}
+                    </p>
+                    <p>
+                        <strong>Отклонившие:</strong>
+                        {% for receiver in approval_request.requestreceivers_set.all %}
+                            {% if  receiver.is_disapproved %}
+                                {{ receiver.receivers.get_initials }}
+                            {% endif %}
+                        {% endfor %}
+                    </p>
 
 
-
-                     <form method="POST" action="{% url 'approve_request' approval_request.pk %}">
+                    <form method="POST" action="{% url 'approve_request' approval_request.pk %}">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-primary">Согласовать</button>
-                        <a href="{{ approval_request.document.file.url }}" target="_blank" class="btn btn-info ml-2">Открыть документ</a>
+                        <a href="{{ approval_request.document.file.url }}" target="_blank" class="btn btn-info ml-2">Открыть
+                            документ</a>
+                        <a href="{% url 'reject_approval' approval_request.id %}" class="btn btn-danger ml-2">Отклонить</a>
                     </form>
                 </li>
             {% empty %}

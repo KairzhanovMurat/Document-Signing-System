@@ -1,7 +1,6 @@
+from django.db.models import Q, OuterRef, Exists
 from django import forms
-from django.contrib.auth import get_user_model
-
-from . import models
+from . import models  # Import your models module
 
 
 class ApprovalRequestForm(forms.ModelForm):
@@ -11,5 +10,17 @@ class ApprovalRequestForm(forms.ModelForm):
 
     def __init__(self, user, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['document'].queryset = models.Document.objects.select_related('user').filter(user=user,
-                                                                                                 is_approved=False)
+
+        # Create a subquery to check if there are related approval requests for the document
+        subquery = models.ApprovalRequest.objects.filter(
+            document=OuterRef('pk'),
+            is_approved=False
+        ).values('document')
+
+        # Use the subquery to filter documents with associated approval requests (is_approved=False)
+        # or documents with no associated approval requests
+        self.fields['document'].queryset = models.Document.objects.filter(
+            user=user
+        ).annotate(has_approval_request=Exists(subquery)).exclude(
+            Q(has_approval_request=True) | Q(is_approved=True)
+        )

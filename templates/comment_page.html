@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Оставить комментарий{% endblock %}
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 offset-md-3">
+                <form method="post" name="comment">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="comment">Причина отказа:</label>
+                        <textarea id="comment" name="comment" rows="4" cols="50" placeholder="Ваш комментарий..."
+                                  class="form-control"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Отправить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
